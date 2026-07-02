@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Syed Mohammed Mustajab Abedi | AI & Robotics Developer</title>
+  
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Fjalla+One&family=Playfair+Display:ital,wght@0,400;0,600;0,800;1,400&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              black: '#07080a',     // Deepest rich slate black
+              charcoal: '#111317',  // Card background
+              gray: '#1e222b',      // Understated borders
+              lightGray: '#2c313d', // Secondary borders
+              cream: '#e3e1da',     // Old money parchment
+              muted: '#b2b8c2'      // High readability slate grey text (enhanced contrast)
+            },
+            tech: {
+              yellow: '#FFFF00',    // Bright yellow accent
+              black: '#000000'
+            }
+          },
+          fontFamily: {
+            serif: ['"Playfair Display"', 'serif'],
+            mono: ['"Share Tech Mono"', 'monospace'],
+            heading: ['"Fjalla One"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style>
+    body { background-color: #07080a; color: #e3e1da; overflow-x: hidden; }
+    
+    .bg-grid-monochrome {
+      background-image: 
+        linear-gradient(to right, rgba(227, 225, 218, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(227, 225, 218, 0.02) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #07080a; }
+    ::-webkit-scrollbar-thumb { background: #1e222b; }
+    ::-webkit-scrollbar-thumb:hover { background: #FFFF00; }
+
+    /* Tactical HUD */
+    @keyframes spin-slow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes spin-reverse {
+      from { transform: rotate(360deg); }
+      to { transform: rotate(0deg); }
+    }
+    .hud-spin-1 { animation: spin-slow 12s linear infinite; }
+    .hud-spin-2 { animation: spin-reverse 8s linear infinite; }
+
+    /* The Sonar Echo Ping */
+    @keyframes sonar-ping {
+      0% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; border-width: 6px; }
+      100% { transform: translate(-50%, -50%) scale(1.6); opacity: 0; border-width: 1px; }
+    }
+    .sonar-echo {
+        animation: sonar-ping 0.7s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+    }
+  </style>
+</head>
+<body class="antialiased min-h-[100vh] font-serif selection:bg-tech-yellow selection:text-tech-black">
+  <div id="root"></div>
+
+  <script type="text/babel" data-type="module">
+    const { useState, useRef, useEffect } = React;
+
+    // =========================================================================
+    // FOOTER LINKS & SOCIALS (Wired directly to the variables you provided)
+    // =========================================================================
+    const LINKEDIN_URL = "https://www.linkedin.com/in/syed-mohammed-mustajab-abedi-7218yaali/";
+    const GITHUB_URL = "https://github.com/mustajab-abedi-dev";
+    const EMAIL_URL = "mailto:seyyid.abedi@gmail.com";
+
+    // Reusable Specs/Logs View (revealed underneath the sheath)
+    const OldMoneyYellowUnderneath = ({ title, year, techData }) => (
+        <div className="absolute inset-0 w-full h-full bg-brand-charcoal flex flex-col justify-center p-8 md:p-12 border-4 border-tech-yellow/50">
+            <div className="flex-grow flex flex-col justify-between max-w-4xl relative z-10 w-full">
+                <div className="flex justify-between items-end border-b border-tech-yellow/20 pb-4 mb-6">
+                    <h4 className="font-heading text-2xl md:text-4xl text-brand-cream uppercase tracking-wider flex items-center gap-4">
+                      <span className="text-tech-yellow text-lg font-normal not-italic px-2 py-0.5 bg-tech-yellow/10">§</span>
+                      Architectural Specs
+                    </h4>
+                    <span className="font-heading text-tech-yellow tracking-wider opacity-85 text-lg">{year}</span>
+                </div>
+                
+                <div className="space-y-3 max-w-3xl flex-grow flex flex-col justify-center border-l border-tech-yellow/50 pl-6 bg-brand-black/40 p-4">
+                {techData.logs.map((log, i) => (
+                    <p key={i} className="font-serif text-base md:text-lg text-tech-yellow leading-relaxed flex items-start">
+                        <span className="text-brand-cream font-serif mr-3 opacity-40">✦</span>
+                        <span className="opacity-90">{log}</span>
+                    </p>
+                ))}
+                </div>
+
+                <div className="mt-6 flex flex-wrap items-end justify-between gap-4 pt-4 border-t border-brand-gray">
+                    <div className="flex items-center gap-4">
+                        <span className="font-serif uppercase tracking-[0.2em] text-[9px] text-tech-yellow">Protocols</span>
+                        <div className="flex flex-wrap gap-3">
+                          {techData.hardSkills.map(skill => (
+                            <span key={skill} className="font-serif italic text-brand-cream text-base underline decoration-tech-yellow/30">{skill}</span>
+                          ))}
+                        </div>
+                    </div>
+                    {/* Repository Link inside architectural breakdown */}
+                    <a 
+                      href={GITHUB_URL} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="pointer-events-auto font-mono text-xs text-tech-yellow hover:text-brand-cream transition-colors duration-200"
+                    >
+                      &gt; VIEW_REPOSITORY
+                    </a>
+                </div>
+            </div>
+            <div className="absolute top-1/2 right-10 -translate-y-1/2 w-64 h-64 bg-tech-yellow/5 blur-3xl rounded-full pointer-events-none"></div>
+        </div>
+    );
+
+    // Reusable Project Cover (Pure Tech Monospace, No Yellow)
+    const TechCover = ({ title, desc, year, tags, sysCode, imgUrl, isFeatured }) => (
+        <div className="absolute top-0 left-0 w-full h-full bg-brand-black flex justify-center items-center">
+            <div className={`w-full h-full flex flex-col ${isFeatured ? 'md:flex-row' : 'flex-col'} bg-grid-monochrome relative border border-brand-gray`}>
+                
+                {/* 1. Project Image Thumbnail */}
+                <div className={`relative ${isFeatured ? 'md:w-1/2 h-48 md:h-full' : 'w-full h-48'} border-b md:border-b-0 ${isFeatured ? 'md:border-r' : ''} border-brand-gray bg-brand-black overflow-hidden`}>
+                    <img 
+                      src={imgUrl} 
+                      alt={`Visual showcase of ${title}`} 
+                      className="w-full h-full object-cover opacity-60 filter grayscale hover:grayscale-0 transition-all duration-700"
+                      width={isFeatured ? 600 : 400}
+                      height={isFeatured ? 400 : 300}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-brand-black via-transparent to-transparent opacity-80"></div>
+                </div>
+
+                {/* 2. Content Block */}
+                <div className={`flex-grow p-6 md:p-8 flex flex-col justify-between ${isFeatured ? 'md:w-1/2' : 'w-full'}`}>
+                    <div>
+                        <div className="flex justify-between items-center mb-6">
+                            <span className="font-mono text-[10px] text-brand-muted uppercase tracking-[0.2em]">
+                                [{sysCode}]
+                            </span>
+                            <span className="font-mono text-[10px] text-brand-muted">
+                                {year}
+                            </span>
+                        </div>
+                        <h3 className="font-mono text-2xl md:text-3xl text-brand-cream mb-4 uppercase tracking-wider">
+                            &gt; {title}
+                        </h3>
+                        <p className="font-serif text-sm md:text-base text-brand-muted leading-loose border-l border-brand-gray pl-4">
+                            {desc}
+                        </p>
+                    </div>
+                    
+                    <div className="flex justify-between items-center mt-6 pt-4 border-t border-brand-gray">
+                        <div className="flex gap-2">
+                            {tags.map(tag => (
+                                <span key={tag} className="font-mono text-[9px] uppercase text-brand-cream border border-brand-gray px-2 py-0.5 bg-brand-charcoal">
+                                    {tag}
+                                </span>
+                            ))}
+                        </div>
+                        <span className="font-mono text-[9px] uppercase text-brand-muted tracking-[0.2em] animate-pulse">
+                            HOVER TO RESOLVE
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+
+    // Interactive Card Component
+    const LaserProjectCard = ({ title, desc, year, tags, techData, imgUrl, isFeatured }) => {
+      const cardRef = useRef(null);
+      const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
+      const [isHovered, setIsHovered] = useState(false);
+      const [trails, setTrails] = useState([]);
+
+      const radius = 220; 
+
+      const handleMouseMove = (e) => {
+        if (!cardRef.current) return;
+        const rect = cardRef.current.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        setMousePos({ x, y });
+
+        // Sonar Echo Logic
+        const now = Date.now();
+        setTrails(prev => {
+            const valid = prev.filter(t => now - t.id < 600); 
+            const last = valid[valid.length - 1];
+            if (!last || Math.hypot(last.x - x, last.y - y) > 100) {
+                return [...valid, { x, y, id: now }];
+            }
+            return valid;
+        });
+      };
+
+      return (
+        <div 
+            ref={cardRef}
+            className={`relative w-full border border-brand-gray bg-brand-charcoal/40 group overflow-hidden cursor-none ${
+              isFeatured ? 'min-h-[500px] md:min-h-[420px]' : 'min-h-[460px]'
+            }`}
+            onMouseMove={handleMouseMove}
+            onMouseEnter={(e) => {
+                if (cardRef.current) {
+                    const rect = cardRef.current.getBoundingClientRect();
+                    setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+                }
+                setIsHovered(true);
+            }}
+            onMouseLeave={() => {
+                setIsHovered(false);
+                setTrails([]); 
+            }}
+        >
+          {/* Base Layer: Tech Cover (Always visible on surface) */}
+          <div className="absolute inset-0 z-10 pointer-events-none">
+             <TechCover 
+               title={title} 
+               desc={desc} 
+               year={year} 
+               tags={tags} 
+               sysCode={techData.sysCode} 
+               imgUrl={imgUrl}
+               isFeatured={isFeatured}
+             />
+          </div>
+
+          {/* Masked Layer: Old Money + Yellow specs (Revealed under lens) */}
+          <div 
+            className="absolute inset-0 z-20 pointer-events-none"
+            style={{
+                opacity: isHovered ? 1 : 0,
+                transition: 'opacity 0.3s ease-out',
+                clipPath: `circle(${isHovered ? radius : 0}px at ${mousePos.x}px ${mousePos.y}px)`
+            }}
+          >
+             <OldMoneyYellowUnderneath title={title} year={year} techData={techData} />
+             
+             {/* Sonar Shockwave Trails */}
+             {trails.map(t => (
+                 <div 
+                    key={t.id} 
+                    className="absolute z-30 pointer-events-none rounded-full border border-tech-yellow/45 sonar-echo mix-blend-overlay"
+                    style={{
+                        left: `${t.x}px`,
+                        top: `${t.y}px`,
+                        width: `${radius * 2}px`,
+                        height: `${radius * 2}px`,
+                    }}
+                 />
+             ))}
+
+             {/* Apple-Style Glass Bevel HUD boundary */}
+             <div 
+                className="absolute z-50 pointer-events-none block"
+                style={{
+                    left: `${mousePos.x}px`,
+                    top: `${mousePos.y}px`,
+                    transform: 'translate(-50%, -50%)',
+                    width: `${radius * 2}px`,
+                    height: `${radius * 2}px`,
+                    opacity: isHovered ? 1 : 0,
+                    transition: 'opacity 0.2s ease-out'
+                }}
+             >
+                 {/* Liquid Glass Edge Reflection */}
+                 <div className="absolute inset-[-3px] rounded-full border-[2.5px] border-white/30 shadow-[inset_0_4px_12px_rgba(255,255,255,0.35),_0_15px_30px_rgba(0,0,0,0.85)] pointer-events-none mix-blend-screen"></div>
+
+                 {/* Golden Rim Refraction */}
+                 <div className="absolute inset-[1px] rounded-full border border-tech-yellow/45 shadow-[inset_0_0_20px_rgba(255,255,0,0.15)] pointer-events-none"></div>
+                 
+                 {/* Technical alignment grids */}
+                 <div className="absolute top-1/2 left-[15%] right-[15%] h-[1px] bg-tech-yellow/20 pointer-events-none"></div>
+                 <div className="absolute top-[15%] bottom-[15%] left-1/2 w-[1px] bg-tech-yellow/20 pointer-events-none"></div>
+
+                 {/* Frosted Lens Coordinate Marker */}
+                 <div className="absolute bottom-[22%] right-[22%] font-mono text-[8px] text-tech-yellow bg-brand-black/75 px-2.5 py-1 uppercase tracking-[0.2em] font-normal backdrop-blur-md rounded-full border border-white/10 shadow-lg">
+                     LOC_X:{Math.round(mousePos.x)} Y:{Math.round(mousePos.y)}
+                 </div>
+             </div>
+          </div>
+        </div>
+      );
+    }
+
+    const App = () => {  
+      // =========================================================================
+      // PROJECTS REPOSITORY (Change descriptions, details and keys as necessary)
+      // =========================================================================
+      const projects = [
+        {
+            title: "Local AI Agent",
+            desc: "A fully localized, production-grade AI infrastructure built from the ground up in JupyterLab. Developed as an active member of the AMD Dev Program, establishing robust pipelines without external cloud dependence.",
+            year: "2024",
+            tags: ["Pydantic_AI", "LLM", "Infra"],
+            imgUrl: "https://picsum.photos/seed/localai/1200/800", // PLACEHOLDER: Swap with your Local AI stack screenshot
+            techData: {
+                sysCode: "LOCAL_AGENT_INIT",
+                logs: [
+                    "Deployed a fully local, zero-cloud dependency AI infrastructure utilizing the Qwen3-30B-A3B model executing directly on CPU environments.",
+                    "Engineered a custom JupyterLab environment bridged to an OpenAI-compatible API endpoint, establishing seamless localized inference.",
+                    "Integrated the Pydantic AI framework, systematically resolving complex downstream pip dependency and apt repository conflicts.",
+                    "Manually configured Node.js v24.13 via NodeSource to serve as a stable Model Context Protocol (MCP) layer."
+                ],
+                hardSkills: ["LocalAI", "AMD Compute", "MCP Server"]
+            }
+        },
+        {
+            title: "Autonomous Vehicles",
+            desc: "An in-depth coordination exploring the four pillars of vehicular autonomy: localization, perception, planning, and control, engineered alongside architectures from the Autoware Foundation.",
+            year: "2024",
+            tags: ["Robotics", "ROS", "Perception"],
+            imgUrl: "https://picsum.photos/seed/autoware/800/600", // PLACEHOLDER: Swap with Autonomous vehicles workshop thumbnail
+            techData: {
+                sysCode: "PERCEPTION_NODE",
+                logs: [
+                    "Explored comprehensive sensor fusion integrations, mapping critical data pathways between optical cameras, LIDAR, RADAR, GPS, and IMU cascades.",
+                    "Analyzed environmental degradation boundaries, evaluating LIDAR signal attenuation in precipitation models against robust RADAR fallback systems.",
+                    "Architected high-efficiency node communication protocols utilizing the Robot Operating System (ROS) message handling system.",
+                    "Validated baseline perception methodologies utilizing the Autoware Foundation stack deployed within the Construct."
+                ],
+                hardSkills: ["ROS Framework", "LIDAR Integration", "Autoware Stack"]
+            }
+        },
+        {
+            title: "Humanoid OpenCV",
+            desc: "Advanced computer vision methodologies integrating deep software abstraction layers with humanoid hardware logic, ensuring stable real-time spatial and frame processing.",
+            year: "2023",
+            tags: ["Comp_Vision", "Hardware"],
+            imgUrl: "https://picsum.photos/seed/opencv/800/600", // PLACEHOLDER: Swap with Humanoid CV project thumbnail
+            techData: {
+                sysCode: "CV_VISION_MATRIX",
+                logs: [
+                    "Architected dense software-to-hardware abstraction layers seamlessly bridging optical data ingest with core mechanical logic.",
+                    "Engineered custom computer vision pipelines utilizing raw OpenCV bindings for sophisticated real-time object tracking.",
+                    "Enforced strict programmatic performance paradigms, ensuring real-time frame matrix rendering with minimal latency.",
+                    "Emphasized clean, modular architectures designed to significantly optimize underlying hardware computation cycles."
+                ],
+                hardSkills: ["OpenCV", "C++ Logic", "Algorithms Engine"]
+            }
+        }
+      ];
+
+      return (
+        <div className="min-h-screen flex flex-col relative w-full">
+            
+            {/* Nav Header */}
+            <nav className="flex justify-between items-center w-full z-30 px-8 md:px-16 py-8 absolute top-0 left-0">
+                <span className="font-serif italic text-xl text-brand-cream tracking-wide">Seyyid.</span>
+                <div className="flex gap-8 font-serif uppercase text-[10px] tracking-[0.3em] text-brand-muted">
+                    <a href="#work" className="hover:text-tech-yellow transition duration-200">Work</a>
+                    <a href="#about" className="hover:text-tech-yellow transition duration-200">About</a>
+                    <a href="#skills" className="hover:text-tech-yellow transition duration-200">Skills</a>
+                    <a href="#contact" className="hover:text-tech-yellow transition duration-200">Contact</a>
+                </div>
+            </nav>
+
+            {/* Asymmetric typographic Hero Section */}
+            <header className="relative min-h-[95vh] flex flex-col justify-center px-8 md:px-16 pt-24 pb-16 bg-gradient-to-b from-brand-black to-brand-black/95">
+                <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                    
+                    {/* Left: Bio & Typography */}
+                    <div className="lg:col-span-8 flex flex-col justify-center text-left">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 border border-brand-gray bg-brand-charcoal/20 w-fit mb-6">
+                            <span className="w-1.5 h-1.5 rounded-full bg-tech-yellow animate-pulse"></span>
+                            <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-brand-muted">Available for Internships</span>
+                        </div>
+                        
+                        <h2 className="font-heading text-2xl md:text-3xl text-brand-muted uppercase tracking-wider mb-4 opacity-90">
+                            Syed Mohammed Mustajab Abedi
+                        </h2>
+                        
+                        <h1 className="font-heading text-5xl md:text-7xl lg:text-[6.5rem] text-brand-cream uppercase tracking-wide leading-none mb-8">
+                            Designing the Mechanics of <span className="text-brand-muted font-normal">Artificial Systems.</span>
+                        </h1>
+                        
+                        <p className="font-serif text-lg md:text-xl text-brand-muted max-w-2xl leading-relaxed italic border-l-2 border-brand-lightGray pl-6">
+                            First-year BTech CS Data Science student at NIAT Hyderabad. Focused on localized AI agents, robotics deployment in ROS2, and ethical security testing.
+                        </p>
+
+                        <div className="mt-12 flex flex-wrap gap-4">
+                            <a href="#work" className="border border-brand-gray hover:border-tech-yellow px-8 py-3.5 font-serif uppercase tracking-[0.2em] text-[11px] text-brand-cream hover:bg-tech-yellow hover:text-tech-black transition duration-300">
+                                View Architectural Specs
+                            </a>
+                            <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className="border border-transparent bg-brand-charcoal hover:bg-brand-gray px-8 py-3.5 font-serif uppercase tracking-[0.2em] text-[11px] text-brand-muted hover:text-brand-cream transition duration-300">
+                                Github Engine
+                            </a>
+                        </div>
+                    </div>
+
+                    {/* Right: Speculative Visual (Profile/Structure Placeholder) */}
+                    <div className="lg:col-span-4 hidden lg:block relative justify-self-center">
+                        <div className="relative w-64 h-80 border border-brand-gray p-3 bg-brand-charcoal/30">
+                            {/* Accent Yellow Corner Marks */}
+                            <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-tech-yellow"></div>
+                            <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-tech-yellow"></div>
+                            
+                            <img 
+                              src="profile.jpg" // Syed Mohammed Mustajab Abedi headshot
+                              alt="Syed Mohammed Mustajab Abedi headshot" 
+                              className="w-full h-full object-cover filter grayscale hover:grayscale-0 transition-all duration-500"
+                              width={300}
+                              height={400}
+                            />
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            {/* Asymmetric, Projects-First Showcase */}
+            <main id="work" className="w-full relative bg-brand-black border-t border-brand-gray z-20 py-24">
+                <div className="max-w-5xl mx-auto px-6 md:px-8 mb-16 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+                    <div>
+                        <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-tech-yellow block mb-2">// SELECTED WORK</span>
+                        <h2 className="font-heading text-brand-cream text-4xl uppercase tracking-wider">Architectures</h2>
+                    </div>
+                    <span className="font-serif italic text-brand-muted text-sm md:max-w-xs text-left md:text-right">
+                        Direct scans of localization, planning, and neural tool stacks. Hover coordinates to unpack core code details.
+                    </span>
+                </div>
+                
+                {/* Visual rhythm: 1 giant featured card, followed by a 2-column grid */}
+                <div className="max-w-6xl mx-auto px-6 md:px-8 flex flex-col gap-10">
+                    
+                    {/* Featured Large Project Card */}
+                    <div className="w-full">
+                        <LaserProjectCard {...projects[0]} isFeatured={true} />
+                    </div>
+
+                    {/* Secondary Projects Grid */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                        <LaserProjectCard {...projects[1]} isFeatured={false} />
+                        <LaserProjectCard {...projects[2]} isFeatured={false} />
+                    </div>
+                </div>
+            </main>
+
+            {/* Concise About Section */}
+            <section id="about" className="px-8 md:px-16 py-32 bg-brand-charcoal/20 border-t border-brand-gray relative z-10">
+                <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+                    <div className="lg:col-span-5">
+                        <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-tech-yellow block mb-3">// IDENTITY</span>
+                        <h2 className="font-heading text-4xl text-brand-cream uppercase tracking-wider mb-6">Mission Parameters</h2>
+                        <p className="font-serif italic text-brand-muted text-lg leading-relaxed">
+                            Shaped by systematic logic, I operate at the intersection of local intelligence and physical systems.
+                        </p>
+                    </div>
+                    <div className="lg:col-span-7 font-serif text-base md:text-lg text-brand-muted leading-relaxed space-y-6">
+                        <p>
+                            As a first-year BTech student at NIAT Hyderabad, my focus is oriented around establishing functional software setups for autonomous tasks. Whether deploying Model Context Protocol layers locally or analyzing sensor limitations for vehicular arrays, I prioritize structural stability over cloud conveniences.
+                        </p>
+                        <p>
+                            Beyond research workshops, I actively test systems as a novice penetration tester, ensuring designed loops are secure from end to end. Let's discuss research collaborations or developer internships.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            {/* Categorized Skills Section */}
+            <section id="skills" className="px-8 md:px-16 py-28 bg-brand-black border-t border-brand-gray relative z-10">
+                <div className="max-w-5xl mx-auto">
+                    <div className="mb-16">
+                        <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-tech-yellow block mb-3">// SYSTEM ENVIRONMENT</span>
+                        <h2 className="font-heading text-4xl text-brand-cream uppercase tracking-wider">Stack & Core Domains</h2>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+                        <div className="border border-brand-gray p-8 bg-brand-charcoal/30">
+                            <span className="font-mono text-[10px] tracking-[0.2em] text-tech-yellow uppercase block mb-6 pb-2 border-b border-brand-gray">Languages</span>
+                            <ul className="font-serif italic text-brand-muted space-y-3 text-lg">
+                                <li className="flex items-center gap-3"><span className="text-tech-yellow text-xs">✦</span> C++</li>
+                                <li className="flex items-center gap-3"><span className="text-tech-yellow text-xs">✦</span> Python</li>
+                                <li className="flex items-center gap-3"><span className="text-tech-yellow text-xs">✦</span> Javascript (JSX)</li>
+                                <li className="flex items-center gap-3"><span className="text-brand-muted opacity-40 text-xs">✦</span> SQL / MongoDB</li>
+                                <li className="flex items-center gap-3"><span className="text-brand-muted opacity-40 text-xs">✦</span> HTML / CSS</li>
+                            </ul>
+                        </div>
+
+                        <div className="border border-brand-gray p-8 bg-brand-charcoal/30">
+                            <span className="font-mono text-[10px] tracking-[0.2em] text-tech-yellow uppercase block mb-6 pb-2 border-b border-brand-gray">Frameworks & Tools</span>
+                            <ul className="font-serif italic text-brand-muted space-y-3 text-lg">
+                                <li className="flex items-center gap-3"><span className="text-tech-yellow text-xs">✦</span> ROS2 (Robot OS)</li>
+                                <li className="flex items-center gap-3"><span className="text-tech-yellow text-xs">✦</span> Pydantic AI</li>
+                                <li className="flex items-center gap-3"><span className="text-tech-yellow text-xs">✦</span> LM Studio / Local LLMs</li>
+                                <li className="flex items-center gap-3"><span className="text-brand-muted opacity-40 text-xs">✦</span> OpenCV Engine</li>
+                                <li className="flex items-center gap-3"><span className="text-brand-muted opacity-40 text-xs">✦</span> JupyterLab</li>
+                            </ul>
+                        </div>
+
+                        <div className="border border-brand-gray p-8 bg-brand-charcoal/30">
+                            <span className="font-mono text-[10px] tracking-[0.2em] text-tech-yellow uppercase block mb-6 pb-2 border-b border-brand-gray">Disciplines</span>
+                            <ul className="font-serif italic text-brand-muted space-y-3 text-lg">
+                                <li className="flex items-center gap-3"><span className="text-tech-yellow text-xs">✦</span> AI Agent Architectures</li>
+                                <li className="flex items-center gap-3"><span className="text-tech-yellow text-xs">✦</span> Autonomous Vehicles</li>
+                                <li className="flex items-center gap-3"><span className="text-tech-yellow text-xs">✦</span> Ethical Hacking</li>
+                                <li className="flex items-center gap-3"><span className="text-brand-muted opacity-40 text-xs">✦</span> Computer Vision</li>
+                                <li className="flex items-center gap-3"><span className="text-brand-muted opacity-40 text-xs">✦</span> Data Science</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Minimalist wired footer */}
+            <footer id="contact" className="px-8 md:px-16 py-32 bg-brand-charcoal border-t border-brand-gray flex flex-col items-center justify-center relative z-10">
+                <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-tech-yellow block mb-6">// DEPLOYMENT INVITATION</span>
+                <h2 className="font-heading text-3xl md:text-5xl lg:text-6xl text-brand-cream mb-16 text-center max-w-4xl tracking-wide uppercase leading-tight">
+                    Establish Connection. Seeking roles in ML, Robotics & Software Engineering.
+                </h2>
+                
+                <div className="flex flex-wrap justify-center gap-8 md:gap-12 mb-16">
+                    {/* LinkedIn Link wired using direct constant */}
+                    <a 
+                      href={LINKEDIN_URL} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="font-serif text-brand-cream hover:text-tech-yellow uppercase tracking-[0.2em] text-xs md:text-sm border-b border-brand-gray hover:border-tech-yellow pb-2 transition duration-200"
+                    >
+                      LinkedIn
+                    </a>
+                    
+                    {/* GitHub Link wired using direct constant */}
+                    <a 
+                      href={GITHUB_URL} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="font-serif text-brand-cream hover:text-tech-yellow uppercase tracking-[0.2em] text-xs md:text-sm border-b border-brand-gray hover:border-tech-yellow pb-2 transition duration-200"
+                    >
+                      GitHub
+                    </a>
+                    
+                    {/* Email Link wired using direct constant */}
+                    <a 
+                      href={EMAIL_URL} 
+                      className="font-serif text-brand-cream hover:text-tech-yellow uppercase tracking-[0.2em] text-xs md:text-sm border-b border-brand-gray hover:border-tech-yellow pb-2 transition duration-200"
+                    >
+                      Email Connection
+                    </a>
+                </div>
+
+                <div className="font-mono text-[10px] text-brand-muted tracking-[0.1em] opacity-50">
+                    Syed Mohammed Mustajab Abedi. NIAT HYDERABAD. 2026.
+                </div>
+            </footer>
+
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
